@@ -33,7 +33,6 @@ public class PlayerOverViewPanell : MonoBehaviourPunCallbacks
         }
     }
 
-    #endregion
 
     #region PUN CALLBACKS
 
