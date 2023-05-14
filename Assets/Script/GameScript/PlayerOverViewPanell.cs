@@ -15,7 +15,6 @@ public class PlayerOverViewPanell : MonoBehaviourPunCallbacks
 
     private Dictionary<int, GameObject> playerListEntries;
 
-    #region UNITY
 
     public void Awake()
     {
@@ -34,7 +33,6 @@ public class PlayerOverViewPanell : MonoBehaviourPunCallbacks
     }
 
 
-    #region PUN CALLBACKS
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {

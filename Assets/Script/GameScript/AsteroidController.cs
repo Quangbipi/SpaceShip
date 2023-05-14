@@ -99,7 +99,6 @@ public class AsteroidController: MonoBehaviour
             }
         }
 
-        PhotonNetwork.Destroy(gameObject);
     }
 
     private void DestroyAsteroidLocally()
