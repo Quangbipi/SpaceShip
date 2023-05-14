@@ -41,6 +41,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     public Button StartGameButton;
     public GameObject PlayerListEntryPrefab;
 
+    // Luu tru phong 
     private Dictionary<string, RoomInfo> cachedRoomList;
     private Dictionary<string, GameObject> roomListEntries;
     private Dictionary<int, GameObject> playerListEntries;
@@ -79,12 +80,12 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedLobby()
     {
-        // whenever this joins a new lobby, clear any previous room lists
+        
         cachedRoomList.Clear();
         ClearRoomListView();
     }
 
-    // note: when a client joins / creates a room, OnLeftLobby does not get called, even if the client was in a lobby before
+    
     public override void OnLeftLobby()
     {
         cachedRoomList.Clear();
@@ -113,7 +114,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        // joining (or entering) a room invalidates any cached lobby room list (even if LeaveLobby was not called due to just joining a room)
+        
         cachedRoomList.Clear();
 
 
@@ -126,11 +127,12 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
         foreach (Player p in PhotonNetwork.PlayerList)
         {
+            // khoi tao item list
             GameObject entry = Instantiate(PlayerListEntryPrefab);
             entry.transform.SetParent(InsideRoomPanel.transform);
             entry.transform.localScale = Vector3.one;
             entry.GetComponent<PlayerListItem>().Initialize(p.ActorNumber, p.NickName);
-
+            //cap nhat trang thai
             object isPlayerReady;
             if (p.CustomProperties.TryGetValue(SpaceShip.PLAYER_READY, out isPlayerReady))
             {
@@ -149,7 +151,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
 
     }
-
+    // roi room
     public override void OnLeftRoom()
     {
         SetActivePanel(SelectionPanel.name);
@@ -162,7 +164,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         playerListEntries.Clear();
         playerListEntries = null;
     }
-
+    // nguoi khac tham gia room
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         GameObject entry = Instantiate(PlayerListEntryPrefab);
@@ -174,7 +176,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
         StartGameButton.gameObject.SetActive(CheckPlayersReady());
     }
-
+    // xoa data khi roi room
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         Destroy(playerListEntries[otherPlayer.ActorNumber].gameObject);
@@ -182,7 +184,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
         StartGameButton.gameObject.SetActive(CheckPlayersReady());
     }
-
+    // check chu phong ms
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber == newMasterClient.ActorNumber)
@@ -216,7 +218,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
 
     #endregion
-    // check login success
+    
     #region UI Callback
 
 
@@ -294,6 +296,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         PhotonNetwork.LoadLevel("Game Scene");
     }
 
+    // thoát game
     public void OnExitGameButtonClicked()
     {
         Application.Quit();
@@ -333,7 +336,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         SelectionPanel.SetActive(activePanel.Equals(SelectionPanel.name));
         CreateRoomPanel.SetActive(activePanel.Equals(CreateRoomPanel.name)); 
         JoinRandomRoomPanel.SetActive(activePanel.Equals(JoinRandomRoomPanel.name));
-        RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    // UI should call OnRoomListButtonClicked() to activate this
+        RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    
         InsideRoomPanel.SetActive(activePanel.Equals(InsideRoomPanel.name));
     }
 
@@ -356,7 +359,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     {
         foreach (RoomInfo info in roomList)
         {
-            // Remove room from cached room list if it got closed, became invisible or was marked as removed
+            // xoa phong khoi bo nho neu phong bi dong hoac da xoa
             if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
             {
                 if (cachedRoomList.ContainsKey(info.Name))
@@ -367,12 +370,12 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
                 continue;
             }
 
-            // Update cached room info
+            // Cap nhap phong
             if (cachedRoomList.ContainsKey(info.Name))
             {
                 cachedRoomList[info.Name] = info;
             }
-            // Add new room info to cache
+            // them phong moi vao bo nho
             else
             {
                 cachedRoomList.Add(info.Name, info);

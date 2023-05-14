@@ -23,7 +23,7 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
     {
         Instance = this;
     }
-
+    
     public override void OnEnable()
     {
         base.OnEnable();
@@ -43,7 +43,7 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
         audioSource.clip = Cup;
         audioSource.Play();
     }
-
+    //huy sk countdowwntimer
     public override void OnDisable()
     {
         base.OnDisable();
@@ -63,23 +63,23 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
-                // Make it appear on the left/right side
+                //xuat hien ben trai hay phai
                 position = new Vector3(Mathf.Sign(direction.x) * Camera.main.orthographicSize * Camera.main.aspect, 0, direction.y * Camera.main.orthographicSize);
             }
             else
             {
-                // Make it appear on the top/bottom
+                // xuat hien tren hay duoi
                 position = new Vector3(direction.x * Camera.main.orthographicSize * Camera.main.aspect, 0, Mathf.Sign(direction.y) * Camera.main.orthographicSize);
             }
 
-            // Offset slightly so we are not out of screen at creation time (as it would destroy the asteroid right away)
+            
             position -= position.normalized * 0.1f;
 
-
+            // tính l?c và ?? xoay c?a thiên th?ch
             Vector3 force = -position.normalized * 1000.0f;
             Vector3 torque = Random.insideUnitSphere * Random.Range(500.0f, 1500.0f);
             object[] instantiationData = { force, torque, true };
-
+            // tao thien thach
             PhotonNetwork.InstantiateRoomObject("BigAsteroid 1", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f), 0, instantiationData);
         }
     }
@@ -90,7 +90,7 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 
         while (timer > 0.0f)
         {
-            InfoText.text = string.Format("Player {0} won with {1} points.\n\n\nReturning to login screen in {2} seconds.", winner, score, timer.ToString("n2"));
+            InfoText.text = string.Format("Nguoi choi {0} chien thang voi {1} diem.\n\n\nTro lai giao dien dang nhap sau {2} giay.", winner, score, timer.ToString("n2"));
 
             yield return new WaitForEndOfFrame();
 
@@ -137,12 +137,13 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
         }
 
 
-        // if there was no countdown yet, the master client (this one) waits until everyone loaded the level and sets a timer start
+     
         int startTimestamp;
         bool startTimeIsSet = CountdownTimer.TryGetStartTime(out startTimestamp);
 
         if (changedProps.ContainsKey(SpaceShip.PLAYER_LOADED_LEVEL))
         {
+            // check ng chs khac load xong screen chua
             if (CheckAllPlayerLoadedLevel())
             {
                 if (!startTimeIsSet)
@@ -154,7 +155,7 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
             {
                 // not all players loaded yet. wait:
                 Debug.Log("setting text waiting for players! ", this.InfoText);
-                InfoText.text = "Waiting for other players...";
+                InfoText.text = "Vui long cho nhung nguoi choi khac...";
             }
         }
 
@@ -164,17 +165,16 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("StartGame!");
 
-        // on rejoin, we have to figure out if the spaceship exists or not
-        // if this is a rejoin (the ship is already network instantiated and will be setup via event) we don't need to call PN.Instantiate
-
+        // tính toán goc cho tung goi choi khi tham gia game
 
         float angularStart = (360.0f / PhotonNetwork.CurrentRoom.PlayerCount) * PhotonNetwork.LocalPlayer.GetPlayerNumber();
+        // Vi tri khoi tao
         float x = 20.0f * Mathf.Sin(angularStart * Mathf.Deg2Rad);
         float z = 20.0f * Mathf.Cos(angularStart * Mathf.Deg2Rad);
         Vector3 position = new Vector3(x, 0.0f, z);
         Quaternion rotation = Quaternion.Euler(0.0f, angularStart, 0.0f);
 
-        PhotonNetwork.Instantiate("Spaceshipp", position, rotation, 0);      // avoid this call on rejoin (ship was network instantiated before)
+        PhotonNetwork.Instantiate("Spaceshipp", position, rotation, 0);      
 
         if (PhotonNetwork.IsMasterClient)
         {

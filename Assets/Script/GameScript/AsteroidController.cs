@@ -12,6 +12,8 @@ public class AsteroidController: MonoBehaviour
 
     private PhotonView photonView;
 
+    
+
 #pragma warning disable 0109
     private new Rigidbody rigidbody;
 #pragma warning restore 0109
@@ -23,7 +25,7 @@ public class AsteroidController: MonoBehaviour
         photonView = GetComponent<PhotonView>();
 
         rigidbody = GetComponent<Rigidbody>();
-
+        // x? ly du lieu khoi tao
         if (photonView.InstantiationData != null)
         {
             rigidbody.AddForce((Vector3)photonView.InstantiationData[0]);
@@ -31,7 +33,11 @@ public class AsteroidController: MonoBehaviour
 
             isLargeAsteroid = (bool)photonView.InstantiationData[2];
         }
+
+       
     }
+
+   
 
     public void Update()
     {
@@ -39,7 +45,7 @@ public class AsteroidController: MonoBehaviour
         {
             return;
         }
-
+        // pha huy thien thach khi di qua screen
         if (Mathf.Abs(transform.position.x) > Camera.main.orthographicSize * Camera.main.aspect || Mathf.Abs(transform.position.z) > Camera.main.orthographicSize)
         {
             // Out of the screen
@@ -53,11 +59,13 @@ public class AsteroidController: MonoBehaviour
         {
             return;
         }
-
+        // check va cham vs dan
         if (collision.gameObject.CompareTag("Bullet"))
         {
+            // check xem dan co ng dkhien hien tai khong
             if (photonView.IsMine)
             {
+                
                 Rocket bullet = collision.gameObject.GetComponent<Rocket>();
                 bullet.Owner.AddScore(isLargeAsteroid ? 2 : 1);
 
@@ -68,6 +76,7 @@ public class AsteroidController: MonoBehaviour
                 DestroyAsteroidLocally();
             }
         }
+        // va cham voi phi thuyen khac
         else if (collision.gameObject.CompareTag("Player"))
         {
             if (photonView.IsMine)
@@ -87,17 +96,22 @@ public class AsteroidController: MonoBehaviour
 
         if (isLargeAsteroid)
         {
+            // random so luong thien thach nho
             int numberToSpawn = Random.Range(3, 6);
 
+            // spawn thien thach
             for (int counter = 0; counter < numberToSpawn; ++counter)
             {
                 Vector3 force = Quaternion.Euler(0, counter * 360.0f / numberToSpawn, 0) * Vector3.forward * Random.Range(0.5f, 1.5f) * 300.0f;
                 Vector3 torque = Random.insideUnitSphere * Random.Range(500.0f, 1500.0f);
                 object[] instantiationData = { force, torque, false, PhotonNetwork.Time };
-
+                // tao ra thien thach nho tren server
                 PhotonNetwork.InstantiateRoomObject("SmallAsteroid", transform.position + force.normalized * 10.0f, Quaternion.Euler(0, Random.value * 180.0f, 0), 0, instantiationData);
             }
         }
+        
+
+        PhotonNetwork.Destroy(gameObject);
 
     }
 

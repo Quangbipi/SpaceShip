@@ -47,6 +47,7 @@ public class SpaceShipController : MonoBehaviour
 
     public void Start()
     {
+        // set color cho phi thuyen
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
             r.material.color = SpaceShip.GetColor(photonView.Owner.GetPlayerNumber());
@@ -63,7 +64,7 @@ public class SpaceShipController : MonoBehaviour
             return;
         }
 
-        // we don't want the master client to apply input to remote ships while the remote player is inactive
+        
         if (this.photonView.CreatorActorNr != PhotonNetwork.LocalPlayer.ActorNumber)
         {
             return;
@@ -72,10 +73,11 @@ public class SpaceShipController : MonoBehaviour
         rotation = Input.GetAxis("Horizontal");
         acceleration = Input.GetAxis("Vertical");
 
+        // ban dan
         if (Input.GetButton("Jump") && shootingTimer <= 0.0)
         {
             shootingTimer = 0.2f;
-
+            // truyen den may khac la dang thuc hien ban
             photonView.RPC("Fire", RpcTarget.AllViaServer, rigidbody.position, rigidbody.rotation);
         }
 
@@ -87,6 +89,7 @@ public class SpaceShipController : MonoBehaviour
 
     public void FixedUpdate()
     {
+        // ktra xem co phai doi tuong may khach
         if (!photonView.IsMine)
         {
             return;
@@ -103,9 +106,9 @@ public class SpaceShipController : MonoBehaviour
         Vector3 force = (rot * Vector3.forward) * acceleration * 1000.0f * MovementSpeed * Time.fixedDeltaTime;
         rigidbody.AddForce(force);
 
-        if (rigidbody.velocity.magnitude > (MaxSpeed * 1000.0f))
+        if (rigidbody.velocity.magnitude > (MaxSpeed * 100.0f))
         {
-            rigidbody.velocity = rigidbody.velocity.normalized * MaxSpeed * 1000.0f;
+            rigidbody.velocity = rigidbody.velocity.normalized * MaxSpeed * 300.0f;
         }
 
         CheckExitScreen();
@@ -132,7 +135,7 @@ public class SpaceShipController : MonoBehaviour
         audioSource.clip = Cup2;
         audioSource.Play();
         rigidbody.velocity = Vector3.zero;
-        rigidbody.angularVelocity = Vector3.zero;
+        rigidbody.angularVelocity = Vector3.zero; // cai dat toc do quay cua doi tuong quanh truc
 
         collider.enabled = false;
         renderer.enabled = false;
@@ -141,7 +144,7 @@ public class SpaceShipController : MonoBehaviour
 
         EngineTrail.SetActive(false);
         Destruction.Play();
-
+        //check client dieu khien object hien tai
         if (photonView.IsMine)
         {
             object lives;
@@ -163,7 +166,7 @@ public class SpaceShipController : MonoBehaviour
         float lag = (float)(PhotonNetwork.Time - info.SentServerTime);
         GameObject bullet;
 
-        /** Use this if you want to fire one bullet at a time **/
+        /**  **/
         bullet = Instantiate(BulletPrefab, position, Quaternion.identity) as GameObject;
         bullet.GetComponent<Rocket>().InitializeBullet(photonView.Owner, (rotation * Vector3.forward), Mathf.Abs(lag));
 
@@ -185,6 +188,7 @@ public class SpaceShipController : MonoBehaviour
 
     #endregion
 
+    
     private void CheckExitScreen()
     {
         if (Camera.main == null)
@@ -195,13 +199,13 @@ public class SpaceShipController : MonoBehaviour
         if (Mathf.Abs(rigidbody.position.x) > (Camera.main.orthographicSize * Camera.main.aspect))
         {
             rigidbody.position = new Vector3(-Mathf.Sign(rigidbody.position.x) * Camera.main.orthographicSize * Camera.main.aspect, 0, rigidbody.position.z);
-            rigidbody.position -= rigidbody.position.normalized * 0.1f; // offset a little bit to avoid looping back & forth between the 2 edges 
+            rigidbody.position -= rigidbody.position.normalized * 0.1f;  
         }
 
         if (Mathf.Abs(rigidbody.position.z) > Camera.main.orthographicSize)
         {
             rigidbody.position = new Vector3(rigidbody.position.x, rigidbody.position.y, -Mathf.Sign(rigidbody.position.z) * Camera.main.orthographicSize);
-            rigidbody.position -= rigidbody.position.normalized * 0.1f; // offset a little bit to avoid looping back & forth between the 2 edges 
+            rigidbody.position -= rigidbody.position.normalized * 0.1f; 
         }
     }
 }

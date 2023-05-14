@@ -254,7 +254,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 99, y: 42}
+  m_AnchoredPosition: {x: 99, y: 124}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1166441168
@@ -983,7 +983,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 2
       minColor: {r: 0.8492702, g: 0.9056604, b: 0.902381, a: 1}
-      maxColor: {r: 0.9194552, g: 0.9339623, b: 0.7260235, a: 1}
+      maxColor: {r: 0.12260585, g: 0.335749, b: 0.7924528, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}

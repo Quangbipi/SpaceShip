@@ -28,6 +28,7 @@ public class PlayerListItem : MonoBehaviour
 
     public void Start()
     {
+        // check chu phong
         if (PhotonNetwork.LocalPlayer.ActorNumber != ownerId)
         {
             PlayerReadyButton.gameObject.SetActive(false);
@@ -35,15 +36,16 @@ public class PlayerListItem : MonoBehaviour
         else
         {
             Hashtable initialProps = new Hashtable() { { SpaceShip.PLAYER_READY, isPlayerReady }, { SpaceShip.PLAYER_LIVES, SpaceShip.PLAYER_MAX_LIVES } };
+            //set thuoc tinh cho ng chs
             PhotonNetwork.LocalPlayer.SetCustomProperties(initialProps);
             PhotonNetwork.LocalPlayer.SetScore(0);
-
+            // xu ly sk click san sang
             PlayerReadyButton.onClick.AddListener(() =>
             {
                 isPlayerReady = !isPlayerReady;
                 SetPlayerReady(isPlayerReady);
 
-                Hashtable props = new Hashtable() { { AsteroidsGame.PLAYER_READY, isPlayerReady } };
+                Hashtable props = new Hashtable() { { SpaceShip.PLAYER_READY, isPlayerReady } };
                 PhotonNetwork.LocalPlayer.SetCustomProperties(props);
 
                 if (PhotonNetwork.IsMasterClient)
@@ -67,6 +69,7 @@ public class PlayerListItem : MonoBehaviour
 
     private void OnPlayerNumberingChanged()
     {
+        //set color image
         foreach (Player p in PhotonNetwork.PlayerList)
         {
             if (p.ActorNumber == ownerId)
@@ -78,7 +81,7 @@ public class PlayerListItem : MonoBehaviour
 
     public void SetPlayerReady(bool playerReady)
     {
-        PlayerReadyButton.GetComponentInChildren<Text>().text = playerReady ? "Ready!" : "Ready?";
+        PlayerReadyButton.GetComponentInChildren<Text>().text = playerReady ? "San sang!" : "San sang?";
         PlayerReadyImage.enabled = playerReady;
     }
 }
