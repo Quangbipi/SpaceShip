@@ -10,12 +10,18 @@ using UnityEngine.UI;
 using ExitGames.Client.Photon;
 using Random = UnityEngine.Random;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using UnityEngine.SceneManagement;
+using System.ComponentModel;
 
 public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 {
     [Header("Login Panel")]
     public GameObject LoginPanel;
     public InputField PlayerNameInput;
+    public GameObject LoaderUI;
+    public Slider progressSlider;
+    public GameObject Fill;
+    public Gradient gradientColor;
 
     [Header("Selection Panel")]
     public GameObject SelectionPanel;
@@ -38,6 +44,21 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     [Header("Inside Room Panel")]
     public GameObject InsideRoomPanel;
 
+    [Header("Map List Panel")]
+    public GameObject MapListPanel;
+
+    [Header("Mode Panel")]
+    public GameObject ModePanel;
+
+    [Header("Single Panel")]
+    public GameObject SinglePanel;
+
+    [Header("SettingPanel")]
+    public GameObject MusicSettingPanel;
+    public Slider musicSlider;
+    public GameObject AboutPanel;
+    
+
     public Button StartGameButton;
     public GameObject PlayerListEntryPrefab;
 
@@ -45,6 +66,8 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     private Dictionary<string, RoomInfo> cachedRoomList;
     private Dictionary<string, GameObject> roomListEntries;
     private Dictionary<int, GameObject> playerListEntries;
+    private bool hasLeftRoom = false;
+    private bool single = false;
     private void Awake()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
@@ -56,7 +79,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     }
     void Start()
     {
-        
+        LoadValues();
     }
 
     // Update is called once per frame
@@ -68,7 +91,12 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        this.SetActivePanel(SelectionPanel.name);
+        if (hasLeftRoom)
+        {
+            return;
+        }
+        Debug.Log("g?i");
+        this.SetActivePanel(ModePanel.name);
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
@@ -97,7 +125,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         SetActivePanel(SelectionPanel.name);
     }
 
-    
+
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
         SetActivePanel(SelectionPanel.name);
@@ -154,7 +182,9 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     // roi room
     public override void OnLeftRoom()
     {
-        SetActivePanel(SelectionPanel.name);
+        hasLeftRoom = true;
+
+        SetActivePanel(single==true ? SinglePanel.name: SelectionPanel.name);
 
         foreach (GameObject entry in playerListEntries.Values)
         {
@@ -163,6 +193,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
 
         playerListEntries.Clear();
         playerListEntries = null;
+        
     }
     // nguoi khac tham gia room
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -213,12 +244,15 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         StartGameButton.gameObject.SetActive(CheckPlayersReady());
     }
 
-    // click button create room
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        SetActivePanel(LoginPanel.name);
+    }
 
 
 
     #endregion
-    
+
     #region UI Callback
 
 
@@ -230,7 +264,8 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         if (!playerName.Equals(""))
         {
             PhotonNetwork.LocalPlayer.NickName = playerName;
-            PhotonNetwork.ConnectUsingSettings();
+            //PhotonNetwork.ConnectUsingSettings();
+            StartCoroutine(ConnectPhoton());
         }
         else
         {
@@ -238,9 +273,50 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         }
     }
 
+    public void OnBackLoginScene()
+    {
+        PhotonNetwork.Disconnect();
+    }
+    IEnumerator ConnectPhoton()
+    {
+        // Hi?n th? LoaderUI
+        SetActivePanel(LoaderUI.name);
+
+        // ??t giá tr? ban ??u cho progressSlider
+        progressSlider.value = 0f;
+
+        // K?t n?i v?i Photon
+        PhotonNetwork.ConnectUsingSettings();
+
+        float progress = 0f;
+        // Ch? k?t n?i thành công ho?c th?t b?i
+#pragma warning disable 0618
+        while (PhotonNetwork.NetworkClientState != ClientState.ConnectedToMasterserver && PhotonNetwork.NetworkClientState != ClientState.Disconnected)
+        {
+            // C?p nh?t giá tr? c?a progressSlider
+            progress = Mathf.MoveTowards(progress, (float)PhotonNetwork.NetworkingClient.LoadBalancingPeer.BytesOut / (float)PhotonNetwork.NetworkingClient.LoadBalancingPeer.BytesIn, Time.deltaTime); 
+            progressSlider.value = progress;
+            Debug.Log(progressSlider.value);
+            
+            yield return null;
+        }
+
+        // N?u k?t n?i thành công, ?n LoaderUI
+        if (PhotonNetwork.NetworkClientState == ClientState.ConnectedToMasterserver)
+        {
+            SetActivePanel(ModePanel.name);
+        }
+        else
+        {
+            Debug.LogError("Failed to connect to Photon: " + PhotonNetwork.NetworkClientState.ToString());
+        }
+#pragma warning restore 0618
+    }
     public void OnLeaveGameButtonClicked()
     {
         PhotonNetwork.LeaveRoom();
+        
+        
     }
 
     // click button join random room
@@ -261,6 +337,29 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         SetActivePanel(RoomListPanel.name);
     }
 
+    public void OnMapListButtonClicked()
+    {
+        if (!PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.JoinLobby();
+        }
+
+        SetActivePanel(MapListPanel.name);
+    }
+
+    public void OnMultiButtonClicked()
+    {
+        single = false;
+        PlayerPrefs.SetInt("SingleScene", 0);
+        SetActivePanel(SelectionPanel.name);
+    }
+
+    public void OnSingleButtonClicked()
+    {
+        single=true;
+        PlayerPrefs.SetInt("SingleScene", 1);
+        SetActivePanel(SinglePanel.name);
+    }
     // leave room
     public void OnBackButtonClicked()
     {
@@ -270,9 +369,34 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveLobby();
         }
         // nguoi choi khong o trong room
-        SetActivePanel(SelectionPanel.name);
+        SetActivePanel(single == true ? SinglePanel.name : SelectionPanel.name);
     }
 
+    public void OnSaveButtonClicked()
+    {
+        float volumeValue = musicSlider.value;
+        PlayerPrefs.SetFloat("VolumeValue", volumeValue);
+        LoadValues();
+        if (PhotonNetwork.InLobby)
+        {
+            PhotonNetwork.LeaveLobby();
+        }
+        // nguoi choi khong o trong room
+        SetActivePanel(single == true ? SinglePanel.name : SelectionPanel.name);
+
+    }
+
+    public void OnAboutButtonClicked()
+    {
+        SetActivePanel(AboutPanel.name);
+    }
+
+    void LoadValues()
+    {
+        float volumeValue = PlayerPrefs.GetFloat("VolumeValue"); 
+        musicSlider.value = volumeValue; 
+        
+    }
     public void OnCreateRoomButtonClicked()
     {
         string roomName = RoomNameInputField.text;
@@ -288,6 +412,22 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         PhotonNetwork.CreateRoom(roomName, options, null);
     }
 
+    public void OnButtonSinglePlayerClicked()
+    {
+        string roomName = "Room " + Random.Range(1000, 10000);
+
+        byte maxPlayers = 1;
+        
+        // thiet lap phong: so luong nguoi, thoi gian gioi h?n cho nguoi choi 
+        RoomOptions options = new RoomOptions { MaxPlayers = maxPlayers, PlayerTtl = 10000 };
+
+        PhotonNetwork.CreateRoom(roomName, options, null);
+    }
+
+    public void OnButtonSettingClicked()
+    {
+        SetActivePanel(MusicSettingPanel.name);
+    }
     public void OnStartGameButtonClicked()
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
@@ -301,6 +441,11 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
     {
         Application.Quit();
         Debug.Log("thoát game");
+    }
+
+    public void OnBackMode()
+    {
+        SetActivePanel(ModePanel.name);
     }
     private bool CheckPlayersReady()
     {
@@ -338,6 +483,12 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         JoinRandomRoomPanel.SetActive(activePanel.Equals(JoinRandomRoomPanel.name));
         RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    
         InsideRoomPanel.SetActive(activePanel.Equals(InsideRoomPanel.name));
+        MapListPanel.SetActive(activePanel.Equals(MapListPanel.name));
+        ModePanel.SetActive(activePanel.Equals(ModePanel.name));
+        SinglePanel.SetActive(activePanel.Equals(SinglePanel.name));
+        LoaderUI.SetActive(activePanel.Equals(LoaderUI.name));
+        MusicSettingPanel.SetActive(activePanel.Equals(MusicSettingPanel.name));
+        AboutPanel.SetActive(activePanel.Equals(AboutPanel.name));
     }
 
     public void LocalPlayerPropertiesUpdated()
@@ -383,6 +534,7 @@ public class LobbyBodyPanel : MonoBehaviourPunCallbacks
         }
     }
 
+    
     private void UpdateRoomListView()
     {
         foreach (RoomInfo info in cachedRoomList.Values)

@@ -7,17 +7,31 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 using Assets.Script;
+using Assets.Script.GameScript;
+using Unity.VisualScripting;
 
 public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 {
     public static SpaceShipGameManager Instance = null;
 
     public Text InfoText;
+    public Text highScoreText;
+    
+    public Text PlayerName;
+    public Text ScoreOfPlayer;
 
     public GameObject[] SpaceShipPrefabs;
+    public GameObject Popup;
+    public GameObject PopupSetting;
+    public Slider musicSlider;
+    public GameObject SettingButton;
 
     public AudioClip Cup;
     private AudioSource audioSource;
+
+    //public HighScoreManager highScoreManager;
+
+    
 
     public void Awake()
     {
@@ -33,16 +47,31 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 
     public void Start()
     {
+        //highScoreManager = HighScoreManager.Instance;
         Hashtable props = new Hashtable
             {
                 {SpaceShip.PLAYER_LOADED_LEVEL, true}
             };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
 
+        LoadValues();
+
         audioSource = GetComponent<AudioSource>();
         audioSource.clip = Cup;
+        audioSource.volume = PlayerPrefs.GetFloat("VolumeValue");
         audioSource.Play();
+
+        //PlayerName.text = string.Format("Nguoi choi: {0}", highScoreManager.GetPlayerName()); 
+        //ScoreOfPlayer.text = string.Format("Diem: {0}", highScoreManager.GetHighScore());
+
     }
+
+    public void Update()
+    {
+        audioSource.volume = PlayerPrefs.GetFloat("VolumeValue");
+    }
+
+
     //huy sk countdowwntimer
     public override void OnDisable()
     {
@@ -87,7 +116,11 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
     private IEnumerator EndOfGame(string winner, int score)
     {
         float timer = 5.0f;
-
+        /*
+        if (score > highScoreManager.GetHighScore())
+        {
+            highScoreManager.SaveHighScore(score, winner);
+        }*/
         while (timer > 0.0f)
         {
             InfoText.text = string.Format("Nguoi choi {0} chien thang voi {1} diem.\n\n\nTro lai giao dien dang nhap sau {2} giay.", winner, score, timer.ToString("n2"));
@@ -97,7 +130,9 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
             timer -= Time.deltaTime;
         }
 
-        PhotonNetwork.LeaveRoom();
+        //PhotonNetwork.LeaveRoom();
+        Popup.SetActive(true);
+        InfoText.text = string.Format("");
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -107,9 +142,11 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom()
     {
-        PhotonNetwork.Disconnect();
+        //PhotonNetwork.Disconnect();
+        PhotonNetwork.LoadLevel("SampleScene");
     }
 
+    
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber == newMasterClient.ActorNumber)
@@ -182,6 +219,27 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public void OnSaveButtonClicked()
+    {
+        float volumeValue = musicSlider.value;
+        PlayerPrefs.SetFloat("VolumeValue", volumeValue);
+        LoadValues();
+        PopupSetting.SetActive(false);
+
+    }
+
+    void LoadValues()
+    {
+        float volumeValue = PlayerPrefs.GetFloat("VolumeValue");
+        musicSlider.value = volumeValue;
+
+    }
+
+    public void OnSettingButtonClicked()
+    {
+        PopupSetting.SetActive(true);
+    }
+
     private bool CheckAllPlayerLoadedLevel()
     {
         foreach (Player p in PhotonNetwork.PlayerList)
@@ -202,6 +260,10 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
         return true;
     }
 
+    public void OnBackButtonClicked()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
     private void CheckEndOfGame()
     {
         bool allDestroyed = true;
@@ -235,6 +297,8 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
                 {
                     winner = p.NickName;
                     score = p.GetScore();
+
+
                 }
             }
 
@@ -244,6 +308,8 @@ public class SpaceShipGameManager : MonoBehaviourPunCallbacks
 
     private void OnCountdownTimerIsExpired()
     {
+        SettingButton.SetActive(true);
         StartGame();
     }
+    
 }

@@ -54,6 +54,7 @@ public class SpaceShipController : MonoBehaviour
         }
         audioSource = GetComponent<AudioSource>();
         audioSource.clip = Cup;
+        audioSource.volume = PlayerPrefs.GetFloat("VolumeValue");
         audioSource.Stop();
     }
 
@@ -106,9 +107,9 @@ public class SpaceShipController : MonoBehaviour
         Vector3 force = (rot * Vector3.forward) * acceleration * 1000.0f * MovementSpeed * Time.fixedDeltaTime;
         rigidbody.AddForce(force);
 
-        if (rigidbody.velocity.magnitude > (MaxSpeed * 100.0f))
+        if (rigidbody.velocity.magnitude > (MaxSpeed * 200.0f))
         {
-            rigidbody.velocity = rigidbody.velocity.normalized * MaxSpeed * 300.0f;
+            rigidbody.velocity = rigidbody.velocity.normalized * MaxSpeed * 200.0f;
         }
 
         CheckExitScreen();
